@@ -20,7 +20,6 @@ class Settings:
         self.start_screen = False
         self.players_screen = False
         self.game_screen = False
-        self.end_screen = False
 
         # Game paths
         self.background_image_path = ''
@@ -94,11 +93,6 @@ class Settings:
         self.deactivate_all_screens()
         self.game_screen = True
 
-    def activate_end_screen(self):
-        """Sets end screen to true and rest to false"""
-        self.deactivate_all_screens()
-        self.end_screen = True
-
     def activate_player(self, name):
         """Activate player"""
 
@@ -162,7 +156,6 @@ class Settings:
         self.start_screen = False
         self.players_screen = False
         self.game_screen = False
-        self.end_screen = False
 
     def get_names(self, players_list):
         """Returns a list of names given a list of player objects"""

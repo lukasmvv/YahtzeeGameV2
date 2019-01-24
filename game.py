@@ -1,7 +1,6 @@
 import pygame
 from Settings import Settings
 from Button import *
-from Player import Player
 from InputBox import InputBox
 import GameFunctions as gF
 
