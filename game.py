@@ -13,8 +13,8 @@ def run_game():
     # Setting up settings
     settings = Settings()
 
-    # Making game active
-    settings.game_active = False
+    # Making start screen active
+    settings.start_screen = True
 
     # Creating screen to draw to
     screen = pygame.display.set_mode((settings.screen_width, settings.screen_height))
@@ -22,10 +22,14 @@ def run_game():
     # Setting caption
     pygame.display.set_caption(settings.window_caption)
 
+    # Getting saved players
+    settings.get_saved_players(screen)
+
     # Start Game Buttons
     start_button = ActionButton(screen, 'Start', settings, 'Start')
+    players_button = ActionButton(screen, 'Players', settings, 'Players')
     quit__s_button = ActionButton(screen, 'Quit', settings, 'Quit')
-    start_buttons = [start_button, quit__s_button]
+    start_buttons = [start_button, players_button, quit__s_button]
 
     # Dice Buttons
     dice_button1 = DiceButton(screen, 'Dice 1', settings, 'Dice', 1)
@@ -69,21 +73,20 @@ def run_game():
     return_sender = SendButton(screen, '<', settings, 'ReturnAll')
     sender_buttons = [keep_sender, return_sender]
 
-    # Input Box
-    new_player = InputBox(screen, '', (0, 0, 0), (150, 150, 150), 300, 50)
-
-    # Players
-    players = [Player('Lukas'), Player('Leana')]
-    settings.players_max = len(players) - 1
+    # Input Box for Players Screen
+    new_player_button = InputBox(screen, '', (0, 0, 0), (150, 150, 150), 300, 50)
+    back_to_start_button = ScoreButton(screen, 'Back', settings, 'Back')
 
     # Update screen for first time
-    gF.update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player, players[settings.player_index], players)
+    gF.update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
+                     new_player_button, back_to_start_button)
 
     # Main game loop
     while True:
 
         # Watch for events
-        gF.check_events(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player,no_score_buttons, players)
+        gF.check_events(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
+                        new_player_button, back_to_start_button, no_score_buttons)
 
 
 run_game()

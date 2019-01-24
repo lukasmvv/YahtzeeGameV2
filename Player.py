@@ -9,9 +9,10 @@ class Player:
 
         # Player attributes
         self.name = name
+
+        # Scoring
         self.scores = Scores()
         self.rolls = 0
-        self.can_score = True
 
         # Player dice
         self.dice1 = Dice()
@@ -22,132 +23,25 @@ class Player:
         self.all_dice = [self.dice1, self.dice2, self.dice3, self.dice4, self.dice5]
         self.kept_list = []
 
-    def get_name(self):
-        """Returns the player name as string"""
-        return self.name
+    def check_button_colour(self, score):
+        """Checks button colour based on score"""
 
-    def new_turn(self):
-        """This methods sets the values of all dice to 0 and returns them to unkept status"""
+        if score is None:
+            return (255, 255, 255)  # black
+        else:
+            return (255, 0, 0)  # red
 
-        # Setting dice values to 0 and False
-        for dice in self.all_dice:
-            dice.value = 0
-            dice.kept = False
+    def check_text_colour(self, score, target):
+        """Checking colour of text for numbers score"""
 
-        # Clearing lists
-        self.kept_list = []
-
-        # Settings rolls to 0
-        self.rolls = 0
-
-        # Setting add yahtzee to False
-        self.scores.scored_add_yahtzee_in_turn = False
-
-        # Allowing player to score again
-        self.scores.can_score = True
-
-    def roll_di(self):
-        """This methods rolls all di that can be rolled"""
-
-        # Checking if within roll limit
-        if self.rolls < 3:
-            for dice in self.all_dice:
-                dice.roll()
-
-            self.rolls = self.rolls + 1
-
-    def repopulate_all_dice(self):
-        """Repopulates the all_dice list"""
-
-        self.all_dice = [self.dice1, self.dice2, self.dice3, self.dice4, self.dice5]
-
-    def get_dice(self, dice_num):
-        """Returns the dice object"""
-
-        # Returning dice based on index
-        return self.all_dice[dice_num-1]
-
-    def is_dice_kept(self, dice_num):
-        """Returns the kept boolean value of given dice"""
-
-        # Returning boolean value of dice based on dice index
-        return self.all_dice[dice_num-1].kept
-
-    def keep_or_return_dice(self, dice_num):
-        """Keeps a single dice based on input and dice index"""
-
-        self.all_dice[dice_num-1].kept = not self.all_dice[dice_num-1].kept
-
-    def keep_all(self):
-        """Keeping all dice"""
-        for dice in self.all_dice:
-            dice.kept = True
-
-    def return_all(self):
-        """Returning all dice"""
-        for dice in self.all_dice:
-            dice.kept = False
-
-    def get_kept_di_list(self):
-        """Returns a list of ints of all the kept di"""
-
-        self.repopulate_all_dice()
-        ls = []
-        for dice in self.all_dice:
-            if dice.kept:
-                ls.append(dice.value)
-        return ls
-
-    def get_full_list(self):
-        """Returns list of all dice"""
-
-        return [self.dice1.value, self.dice2.value, self.dice3.value, self.dice4.value, self.dice5.value]
-
-    def get_score(self, score_type):
-        """Gets a score based on score_type"""
-        ret = 0
-        if score_type == 'ScoreName':
-            ret = self.name
-        elif score_type == 'Score1':
-            ret = self.scores.ones
-        elif score_type == 'Score2':
-            ret = self.scores.twos
-        elif score_type == 'Score3':
-            ret = self.scores.threes
-        elif score_type == 'Score4':
-            ret = self.scores.fours
-        elif score_type == 'Score5':
-            ret = self.scores.fives
-        elif score_type == 'Score6':
-            ret = self.scores.sixes
-        elif score_type == 'ScoreNumbers':
-            ret = self.scores.numbers
-        elif score_type == 'ScoreBonus':
-            ret = self.scores.bonus
-        elif score_type == 'ScoreTop':
-            ret = self.scores.top
-        elif score_type == 'Score3K':
-            ret = self.scores.three_of_a_kind
-        elif score_type == 'Score4K':
-            ret = self.scores.four_of_a_kind
-        elif score_type == 'ScoreFH':
-            ret = self.scores.full_house
-        elif score_type == 'ScoreSS':
-            ret = self.scores.short_straight
-        elif score_type == 'ScoreLS':
-            ret = self.scores.long_straight
-        elif score_type == 'ScoreY':
-            ret = self.scores.yahtzee
-        elif score_type == 'ScoreC':
-            ret = self.scores.chance
-        elif score_type == 'ScoreBottom':
-            ret = self.scores.bottom
-        elif score_type == 'ScoreTotal':
-            ret = self.scores.total
-
-        if ret is None:
-            ret = 0
-        return ret
+        if score is None:
+            return (0, 0, 0)  # black
+        elif score > 3 * target:
+            return (0, 255, 0)  # green
+        elif score < 3 * target:
+            return (255, 255, 0)  # yellow
+        else:
+            return (0, 0, 0)  # black
 
     def get_button_colour(self, score_type):
         """Returns red or green for button type"""
@@ -213,25 +107,135 @@ class Player:
         ret = [button_colour, text_colour]
         return ret
 
-    def check_text_colour(self, score, target):
-        """Checking colour of text for numbers score"""
+    def get_dice(self, dice_num):
+        """Returns the dice object"""
 
-        if score is None:
-            return (0, 0, 0)  # black
-        elif score > 3 * target:
-            return (0, 255, 0)  # green
-        elif score < 3 * target:
-            return (255, 255, 0)  # yellow
-        else:
-            return (0, 0, 0)
+        self.repopulate_all_dice()
 
-    def check_button_colour(self, score):
-        """Checks button colour based on score"""
+        # Returning dice based on index
+        return self.all_dice[dice_num-1]
 
-        if score is None:
-            return (255, 255, 255)  # black
-        else:
-            return (255, 0, 0)  # red
+    def get_full_list(self):
+        """Returns list of all dice"""
+
+        self.repopulate_all_dice()
+
+        ls = []
+        for dice in self.all_dice:
+            ls.append(dice.value)
+        return ls
+
+    def get_kept_di_list(self):
+        """Returns a list of ints of all the kept di"""
+
+        self.repopulate_all_dice()
+
+        ls = []
+        for dice in self.all_dice:
+            if dice.kept:
+                ls.append(dice.value)
+        return ls
+
+    def get_name(self):
+        """Returns the player name as string"""
+        return self.name
+
+    def get_score(self, score_type):
+        """Gets a score based on score_type"""
+
+        ret = 0
+        if score_type == 'ScoreName':
+            ret = self.name
+        elif score_type == 'Score1':
+            ret = self.scores.ones
+        elif score_type == 'Score2':
+            ret = self.scores.twos
+        elif score_type == 'Score3':
+            ret = self.scores.threes
+        elif score_type == 'Score4':
+            ret = self.scores.fours
+        elif score_type == 'Score5':
+            ret = self.scores.fives
+        elif score_type == 'Score6':
+            ret = self.scores.sixes
+        elif score_type == 'ScoreNumbers':
+            ret = self.scores.numbers
+        elif score_type == 'ScoreBonus':
+            ret = self.scores.bonus
+        elif score_type == 'ScoreTop':
+            ret = self.scores.top
+        elif score_type == 'Score3K':
+            ret = self.scores.three_of_a_kind
+        elif score_type == 'Score4K':
+            ret = self.scores.four_of_a_kind
+        elif score_type == 'ScoreFH':
+            ret = self.scores.full_house
+        elif score_type == 'ScoreSS':
+            ret = self.scores.short_straight
+        elif score_type == 'ScoreLS':
+            ret = self.scores.long_straight
+        elif score_type == 'ScoreY':
+            ret = self.scores.yahtzee
+        elif score_type == 'ScoreC':
+            ret = self.scores.chance
+        elif score_type == 'ScoreBottom':
+            ret = self.scores.bottom
+        elif score_type == 'ScoreTotal':
+            ret = self.scores.total
+
+        if ret is None:
+            ret = 0
+        return ret
+
+    def is_dice_kept(self, dice_num):
+        """Returns the kept boolean value of given dice"""
+
+        self.repopulate_all_dice()
+
+        # Returning boolean value of dice based on dice index
+        return self.all_dice[dice_num-1].kept
+
+    def keep_all(self):
+        """Keeping all dice"""
+
+        self.repopulate_all_dice()
+
+        for dice in self.all_dice:
+            dice.kept = True
+
+    def keep_or_return_dice(self, dice_num):
+        """Keeps a single dice based on input and dice index"""
+
+        self.repopulate_all_dice()
+        self.all_dice[dice_num-1].kept = not self.all_dice[dice_num-1].kept
+
+    def new_turn(self):
+        """This methods sets the values of all dice to 0 and returns them to unkept status"""
+
+        # Setting dice values to 0 and kept to False
+        for dice in self.all_dice:
+            dice.value = 0
+            dice.kept = False
+
+        # Clearing lists
+        self.kept_list = []
+
+        # Settings rolls to 0
+        self.rolls = 0
+
+        # Setting add yahtzee to False
+        self.scores.scored_add_yahtzee_in_turn = False
+
+        # Allowing player to score again
+        self.scores.can_score = True
+
+    def return_all(self):
+        """Returning all dice"""
+
+        self.repopulate_all_dice()
+
+        for dice in self.all_dice:
+            dice.kept = False
 
     def reset_scores(self):
         """Resets all scores"""
@@ -254,3 +258,44 @@ class Player:
         self.scores.chance = None
         self.scores.bottom = 0
         self.scores.total = 0
+
+    def repopulate_all_dice(self):
+        """Repopulates the all_dice list"""
+
+        self.all_dice = [self.dice1, self.dice2, self.dice3, self.dice4, self.dice5]
+
+    def roll_di(self):
+        """This methods rolls all di that can be rolled"""
+
+        self.repopulate_all_dice()
+
+        # Checking if within roll limit
+        if self.rolls < 3:
+            for dice in self.all_dice:
+                dice.roll()
+
+            self.rolls = self.rolls + 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

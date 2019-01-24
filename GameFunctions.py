@@ -1,50 +1,136 @@
 import pygame
 import sys
 from Button import *
-from InputBox import InputBox
 
 
-def check_events(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player,no_score_buttons, players):
+def check_events(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
+                 new_player_button, back_to_start_button, no_score_buttons):
     """Function that checks inputs"""
 
     # Getting current player based on index
-    player = players[settings.player_index]
+    players = settings.active_players
+    if players:
+        player = players[settings.player_index]
 
     # Checking events
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             sys.exit()
+
         elif event.type == pygame.KEYDOWN:
-            check_key_down(event, screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
-                      new_player, player, players)
+            check_key_down(event, screen, settings, new_player_button)
+
+            # Updating screen
+            update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
+                          new_player_button, back_to_start_button)
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
-            check_mouse_press(screen, settings, mouse_x, mouse_y, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player,no_score_buttons, player, players)
-            player = players[settings.player_index]  # Updating player after possibility of 'New Turn' being clicked
-            update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player, player, players)
+            check_mouse_press(screen, settings, mouse_x, mouse_y, start_buttons, dice_buttons, score_buttons,
+                              action_buttons, sender_buttons, new_player_button, back_to_start_button, no_score_buttons)
+            if players:
+                player = players[settings.player_index]  # Updating player after possibility of 'New Turn' being clicked
+
+            # Updating screen
+            update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
+                          new_player_button, back_to_start_button)
 
 
-def check_mouse_press(screen, settings, x, y, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player,no_score_buttons, player, players):
+def check_key_down(event, screen, settings, new_player_button):
+    """Checking all keyboard down strokes"""
+
+    # Input box
+    if settings.players_screen and new_player_button.can_type:
+
+        if event.key == pygame.K_RETURN:
+            new_player_button.can_type = False
+            new_player_button.box_color = (150, 150, 150)  # making box gray
+
+            # Adding a player
+            settings.add_active_player(new_player_button.text, screen)
+            new_player_button.text = ''
+
+        elif event.key == pygame.K_BACKSPACE:
+            new_player_button.text = new_player_button.text[:-1]
+
+        else:
+            new_player_button.text = new_player_button.text + event.unicode
+
+    # Quiting game with keyboard
+    elif settings.start_screen and event.key == pygame.K_q:
+        sys.exit()
+
+
+def check_endgame(players):
+    """Function to check if endgame has been reached"""
+
+    # Checking if all scores have been scored
+    end = True
+    for player in players:
+        if not player.scores.is_scores_done():
+            end = False
+            continue
+    return end
+
+
+
+
+
+
+
+def check_mouse_press(screen, settings, x, y, start_buttons, dice_buttons, score_buttons, action_buttons,
+                      sender_buttons, new_player_button, back_to_start_button, no_score_buttons):
     """Checking if a button has been clicked"""
+
+    # Getting player info
+    players = settings.active_players
+    if players:
+        player = players[settings.player_index]
+
     # Checking for start screen
-    if not settings.game_active:
+    if settings.start_screen:
         for button in start_buttons:
             if button.rect.collidepoint(x, y):
-                if button.type == 'Start':
-                    settings.game_active = True
+                if button.type == 'Start' and players:
+                    settings.activate_game_screen()
+                elif button.type == 'Players':
+                    settings.activate_players_screen()
                 elif button.type == 'Quit':
                     sys.exit()
+        # Checking activating/deactivating player
+        for button in settings.players_buttons:
+            if button.rect.collidepoint(x, y):
+                if button.color == (0, 255, 0):
+                    button.color = (255, 0, 0)
+                    settings.remove_active_player(button.text)
+                elif button.color == (255, 0, 0):
+                    button.color = (0, 255, 0)
+                    settings.activate_player(button.text)
 
+    elif settings.players_screen:
         # Input box
-        if new_player.rect.collidepoint(x, y):
-            new_player.box_color = (255, 255, 255)
-            new_player.can_type = True
-            print('here')
-    else:
+        if new_player_button.rect.collidepoint(x, y):
+            new_player_button.box_color = (255, 255, 255)
+            new_player_button.can_type = True
+        elif back_to_start_button.rect.collidepoint(x, y):
+            settings.activate_start_screen()
+        else:
+            # Checking activating/deactivating player
+            for button in settings.players_buttons:
+                if button.rect.collidepoint(x, y):
+                    if button.color == (0, 255, 0):
+                        button.color = (255, 0, 0)
+                        settings.remove_active_player(button.text)
+                    elif button.color == (255, 0, 0):
+                        button.color = (0, 255, 0)
+                        settings.activate_player(button.text)
+
+    elif settings.game_screen:
 
         # Checking Score Buttons
         for button in score_buttons:
-            if button.rect.collidepoint(x, y) and settings.game_active and player.scores.can_score and button not in no_score_buttons and button.color != (255, 0, 0):
+            if button.rect.collidepoint(x, y) and player.scores.can_score and button not in no_score_buttons and button.color != (255, 0, 0):
 
                 # Keeping all dice for scoring
                 player.keep_all()
@@ -96,73 +182,61 @@ def check_mouse_press(screen, settings, x, y, start_buttons, dice_buttons, score
 
         # Checking Dice Buttons
         for button in dice_buttons:
-            if button.rect.collidepoint(x, y) and settings.game_active:
+            if button.rect.collidepoint(x, y):
                 player.keep_or_return_dice(button.number)
 
         # Checking Action Buttons
         for button in action_buttons:
-            if button.type == 'New' and button.rect.collidepoint(x, y) and settings.game_active and not player.scores.can_score:
+            if button.type == 'New' and button.rect.collidepoint(x, y) and not player.scores.can_score:
                 player.new_turn()
                 settings.next_player()
 
                 # If all scores done, endgame scenario
                 if check_endgame(players, settings):
-                    settings.game_active = False
+                    settings.activate_end_screen
 
-            elif button.type == 'Roll' and button.rect.collidepoint(x, y) and settings.game_active and player.rolls < 3:
+            elif button.type == 'Roll' and button.rect.collidepoint(x, y)and player.rolls < 3:
                 player.roll_di()
                 settings.can_score = True
-            elif button.type == 'Quit' and button.rect.collidepoint(x, y) and settings.game_active:
+            elif button.type == 'Quit' and button.rect.collidepoint(x, y):
                 sys.exit()
 
         # Checking Sender Buttons
         for button in sender_buttons:
-            if button.type == 'KeepAll' and button.rect.collidepoint(x, y) and settings.game_active and player.scores.can_score:
+            if button.type == 'KeepAll' and button.rect.collidepoint(x, y) and player.scores.can_score:
                 player.keep_all()
-            elif button.type == 'ReturnAll' and button.rect.collidepoint(x, y) and settings.game_active and player.scores.can_score:
+            elif button.type == 'ReturnAll' and button.rect.collidepoint(x, y) and player.scores.can_score:
                 player.return_all()
 
 
-def check_key_down(event, screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
-                      new_player, player, players):
-    """Checking all keyboard down strokes"""
-
-    # Input box
-    if new_player.can_type:
-        if event.key == pygame.K_RETURN:
-            new_player.can_type = False
-            print(new_player.text)
-            new_player.box_color = (150, 150, 150)
-        elif event.key == pygame.K_BACKSPACE:
-            new_player.text = new_player.text[:-1]
-        #elif event.key == pygame.K_DELETE:
-        #    pass
-        else:
-            new_player.text = new_player.text + event.unicode
-        update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
-                      new_player, player, players)
-    # Quiting game with keyboard
-    if event.key == pygame.K_q:
-        sys.exit()
 
 
-def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons, new_player, player, players):
+
+
+
+def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, action_buttons, sender_buttons,
+                  new_player_button, back_to_start_button):
     """Function that updates the screen"""
 
     # Redraw the screen
     # add_background_image(screen, settings, bg_image)
 
+    # Getting player and players
+    players = settings.active_players
+    if players:
+        player = players[settings.player_index]
+
     # Update background colour
     screen.fill((0, 0, 0))
 
     # Checking for start screen
-    if not settings.game_active:
+    if settings.start_screen:
 
-        if check_endgame(players, settings):
+        if check_endgame(players) and players:
             player_counter = 0
             for player in players:
                 final_button = ActionButton(screen, "Name", settings, 'ScoreName')
-                final_button.update_button_image(player.get_name() + ': ' + str(player.scores.total))
+                final_button.update_button_text(player.get_name() + ': ' + str(player.scores.total))
                 x = (settings.screen_width*3/4 + final_button.width/2)
                 y = (settings.screen_height/2) + player_counter * final_button.height * settings.score_buttons_spacing
                 final_button.update_button_position((x, y))
@@ -173,25 +247,52 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
         start_counter = 0
         for button in start_buttons:
             # Updating button image and text rendering
-            button.update_button_image(button.text)
+            button.update_button_text(button.text)
 
             # Initial dice button positions
             x = settings.screen_width/2
             y = settings.screen_height/2 + start_counter * (button.height*1.05)
 
-            start_counter = start_counter + 1
-
             button.update_button_position((x, y))
             button.draw_button()
 
-        # Input box test
-        print(new_player.box_color)
-        new_player.build_rect()
-        new_player.update_box_image(new_player.text)
-        new_player.update_box_position((500, 100))
-        new_player.draw_box()
+            start_counter = start_counter + 1
 
-    else:
+        # Updating player buttons
+        if settings.players_buttons:
+            player_button_counter = 0
+            for button in settings.players_buttons:
+                x = settings.screen_width - 100 - button.width/2
+                y = settings.screen_height/2 + player_button_counter * button.height * 1.05
+                button.update_button_text(button.text)
+                button.update_button_position((x, y))
+                button.draw_button()
+                player_button_counter = player_button_counter + 1
+
+    elif settings.players_screen:
+        # Updating new player button
+        new_player_button.build_rect()
+        new_player_button.update_box_image(new_player_button.text)
+        new_player_button.update_box_position((500, 100))
+        new_player_button.draw_box()
+
+        # Updating back button
+        back_to_start_button.build_rect()
+        back_to_start_button.update_button_position((100 + back_to_start_button.width / 2, settings.screen_height - back_to_start_button.height))
+        back_to_start_button.draw_button()
+
+        # Updating player buttons
+        if settings.players_buttons:
+            player_button_counter = 0
+            for button in settings.players_buttons:
+                x = settings.screen_width - 100 - button.width / 2
+                y = settings.screen_height / 2 + player_button_counter * button.height * 1.05
+                button.update_button_text(button.text)
+                button.update_button_position((x, y))
+                button.draw_button()
+                player_button_counter = player_button_counter + 1
+
+    elif settings.game_screen and players:
 
         # Drawing buttons
         kept_counter = 0
@@ -205,7 +306,7 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
         # Updating Dice Buttons
         for button in dice_buttons:
             # Updating button image and text rendering
-            button.update_button_image(str(player.get_dice(dice_counter).value))
+            button.update_button_text(str(player.get_dice(dice_counter).value))
 
             # Initial dice button positions
             x = settings.dice_distance_from_left + button.width/2
@@ -215,7 +316,7 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
             if player.is_dice_kept(dice_counter):
 
                 # Check if current button value matches kept di value
-                # If it does, move to appropiate position and replace value in list with 7
+                # If it does, move to appropriate position and replace value in list with 7
                 if player.get_dice(dice_counter).value in kept_di:
                     index = kept_di.index(player.get_dice(dice_counter).value)
                     x = (settings.screen_width/2 + button.width/2) + index * settings.dice_button_spacing
@@ -237,7 +338,8 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
             button.text_color = colours[1]
 
             # Updating button image and text rendering
-            button.update_button_image(button.text + ': ' + str(player.get_score(button.type)))
+            text = button.start_text + ': ' + str(player.get_score(button.type))
+            button.update_button_text(text)
 
             # Updating position
             x = settings.score_buttons_from_left + button.width/2
@@ -258,7 +360,7 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
                     button.color = (0, 255, 0)
 
             # Updating button image and text rendering
-            button.update_button_image(button.text)
+            button.update_button_text(button.text)
 
             # Updating position
             x = settings.screen_width/4 + button.width/2
@@ -273,7 +375,7 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
         for button in sender_buttons:
 
             # Updating button image and text rendering
-            button.update_button_image(button.text)
+            button.update_button_text(button.text)
 
             # Updating position
             x = settings.screen_width / 2 + button.width / 2
@@ -285,18 +387,11 @@ def update_screen(screen, settings, start_buttons, dice_buttons, score_buttons, 
 
             sender_counter = sender_counter + 1
 
+    elif settings.end_screen:
+        pass
+
     # Make the most recently drawn screen visible
     pygame.display.flip()
 
 
-def check_endgame(players, settings):
-    """Function to check if endgame has been reached"""
 
-    # Checking if all scores have been scored
-    end = True
-    for player in players:
-        if not player.scores.is_scores_done():
-            end = False
-            continue
-    #settings.game_active = False
-    return end

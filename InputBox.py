@@ -39,6 +39,12 @@ class InputBox:
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.center = self.screen_rect.center
 
+    def draw_box(self):
+        """Method which draws button"""
+
+        self.screen.fill(self.box_color, self.rect)
+        self.screen.blit(self.message_image, self.message_image_rect)
+
     def render_box_text(self):
         """Rendering box text as an image to draw on screen"""
 
@@ -46,12 +52,6 @@ class InputBox:
         self.message_image = self.font.render(self.text, True, self.text_color, self.box_color)  # True turns aliasing on
         self.message_image_rect = self.message_image.get_rect()
         self.message_image_rect.center = self.rect.center
-
-    def draw_box(self):
-        """Method which draws button"""
-
-        self.screen.fill(self.box_color, self.rect)
-        self.screen.blit(self.message_image, self.message_image_rect)
 
     def update_box_image(self, text):
         """Updates box text and image rendering"""

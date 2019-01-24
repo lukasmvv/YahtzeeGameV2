@@ -11,6 +11,7 @@ class Button:
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
         self.text = text
+        self.start_text = text
         self.type = type
 
         # Button rectangle
@@ -20,12 +21,26 @@ class Button:
         self.message_image = None
         self.message_image_rect = None
 
+        # Position
+        self.center = (settings.screen_width/2, settings.screen_height/2)
+
     def build_rect(self):
         """Building pygame rect"""
 
         # Building button rect
         self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.rect.center = self.screen_rect.center
+        self.rect.center = self.center
+
+    def draw_button(self):
+        """Method which draws button"""
+
+        # Building rect and text image again
+        self.build_rect()
+        self.render_button_text()
+
+        # Drawing button
+        self.screen.fill(self.color, self.rect)
+        self.screen.blit(self.message_image, self.message_image_rect)
 
     def render_button_text(self):
         """Rendering button text as an image to draw on screen"""
@@ -35,22 +50,13 @@ class Button:
         self.message_image_rect = self.message_image.get_rect()
         self.message_image_rect.center = self.rect.center
 
-    def draw_button(self):
-        """Method which draws button"""
-
-        self.screen.fill(self.color, self.rect)
-        self.screen.blit(self.message_image, self.message_image_rect)
-
-    def update_button_image(self, text):
-        """Updates button text and image rendering"""
-        self.message_image = self.font.render(text, True, self.text_color, self.color)  # True turns aliasing on
-        self.message_image_rect = self.message_image.get_rect()
-        self.rect = pygame.Rect(0, 0, self.width, self.height)
-
     def update_button_position(self, center):
         """Updates button position"""
-        self.rect.center = center
-        self.message_image_rect.center = self.rect.center
+        self.center = center
+
+    def update_button_text(self, text):
+        """Updates button text and image rendering"""
+        self.text = text
 
 
 class DiceButton(Button):
