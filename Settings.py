@@ -12,7 +12,7 @@ class Settings:
         # Screen settings
         self.screen_width = 1200
         self.screen_height = 800
-        self.bg_color = (230, 230, 230)
+        self.background_color = (0, 0, 0)
         self.window_caption = 'Yahtzee!'
 
         # Game screens
@@ -33,7 +33,31 @@ class Settings:
         self.all_players = []
         self.active_players = []
         self.players_buttons = []
-        self.player_button_color = (0, 255, 0)
+
+        # Player Colors
+        self.player_button_color = (0, 255, 0)  # green
+
+        # Score Button Colors
+        self.can_score_color = (255, 255, 255)  # white
+        self.can_not_score_color = (255, 0, 0)  # red
+        self.score_name_color = (0, 0, 255)  # blue
+        self.no_score_color = (255, 255, 255)  # white
+
+        # Score Text Colors
+        self.score_number_no_score_text_color = (0, 0, 0)  # black
+        self.score_number_under_text_color = (255, 255, 0)  # yellow
+        self.score_number_equal_text_color = (0, 0, 0)  # black
+        self.score_number_over_text_color = (0, 255, 0)  # green
+        self.can_score_text_color = (0, 0, 0)  # black
+        self.can_not_score_text_color = (0, 0, 0)  # black
+
+        # Active/Inactive Colors
+        self.active_color = (0, 255, 0)  # green
+        self.inactive_color = (255, 0, 0)  # red
+
+        # New Player Colors
+        self.can_type_color = (255, 255, 255)  # white
+        self.cant_type_color = (150, 150, 150)  # grey
 
         # Button settings
         self.button_width = 100
@@ -59,6 +83,9 @@ class Settings:
         self.dice_distance_from_top = 50
         self.dice_distance_from_left = 50
         self.dice_button_spacing = self.button_width_dice*3/2
+        self.dice_button_start_center = (50, 50)
+        self.dice_button_x_inc = 50
+        self.dice_button_y_inc = 0
 
         # Score button settings
         self.button_width_score = 250
@@ -77,6 +104,8 @@ class Settings:
         self.button_text_color_sender = (255, 255, 255)
         self.button_font_sender = pygame.font.SysFont(None, 40)
         self.sender_buttons_spacing = 1.025  # percentage
+
+
 
     def activate_start_screen(self):
         """Sets start screen to true and rest to false"""
@@ -109,14 +138,14 @@ class Settings:
             # Setting max number of players
             self.players_max = len(self.active_players)
 
-    def add_player(self, player_name, screen):
+    def add_player(self, player_name, screen, settings):
         """Adds a player"""
 
         # Only adds a button if name not in current list of players
         if player_name not in self.get_names(self.active_players):
 
             # Creating new player object
-            player = Player(player_name)
+            player = Player(player_name, settings)
 
             # Adding player to lists
             self.active_players.append(player)
@@ -140,12 +169,12 @@ class Settings:
         # Adding button to player button list
         self.players_buttons.append(button)
 
-    def add_active_player(self, player_name, screen):
+    def add_active_player(self, player_name, screen, settings):
         """Appends player to list of active player"""
 
         player_name = player_name.strip().title()
         # Adding player
-        self.add_player(player_name, screen)
+        self.add_player(player_name, screen, settings)
 
         # Add player to file
         self.write_player_list_to_file(self.all_players, self.all_filename)
@@ -166,7 +195,7 @@ class Settings:
                 ls.append(player.get_name())
         return ls
 
-    def get_saved_players(self, screen):
+    def get_saved_players(self, screen, settings):
         """This methods reads the saved JSON file and adds those players to all players"""
 
         try:
@@ -179,7 +208,7 @@ class Settings:
                 if names:
                     for name in names:
                         # Adding player based on name
-                        self.add_player(name.strip().title(), screen)
+                        self.add_player(name.strip().title(), screen, settings)
 
         except FileNotFoundError:
             pass

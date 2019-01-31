@@ -22,6 +22,9 @@ class Button:
         self.message_image_rect = None
 
         # Position
+        self.start_center = (settings.screen_width/2, settings.screen_height/2)
+        self.x_inc = 0
+        self.y_inc = 0
         self.center = (settings.screen_width/2, settings.screen_height/2)
 
     def build_rect(self):
@@ -41,6 +44,18 @@ class Button:
         # Drawing button
         self.screen.fill(self.color, self.rect)
         self.screen.blit(self.message_image, self.message_image_rect)
+
+    def get_center_x(self):
+        """Returns the x value of center"""
+        return self.center[0]
+
+    def get_center_y(self):
+        """Returns the y value of center"""
+        return self.center[1]
+
+    def increment_pos(self, num):
+        """Increments x and y positions"""
+        self.center = (self.start_center[0] * num, self.start_center[1] * num)
 
     def render_button_text(self):
         """Rendering button text as an image to draw on screen"""
@@ -77,6 +92,11 @@ class DiceButton(Button):
 
         # Setting dice number index
         self.number = number
+
+        # Position Settings
+        self.start_center = settings.dice_button_start_center
+        self.x_inc = settings.dice_button_x_inc
+        self.y_inc = settings.dice_button_y_inc
 
         # Building button rect and image
         self.build_rect()

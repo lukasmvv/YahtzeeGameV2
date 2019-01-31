@@ -22,7 +22,7 @@ def run_game():
     pygame.display.set_caption(settings.window_caption)
 
     # Getting saved players
-    settings.get_saved_players(screen)
+    settings.get_saved_players(screen, settings)
 
     # Start Game Buttons
     start_button = ActionButton(screen, 'Start', settings, 'Start')

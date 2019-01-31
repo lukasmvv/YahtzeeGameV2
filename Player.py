@@ -5,10 +5,11 @@ from Dice import Dice
 class Player:
     """Player class"""
 
-    def __init__(self, name):
+    def __init__(self, name, settings):
 
         # Player attributes
         self.name = name
+        self.settings = settings
 
         # Scoring
         self.scores = Scores()
@@ -27,31 +28,45 @@ class Player:
         """Checks button colour based on score"""
 
         if score is None:
-            return (255, 255, 255)  # black
+            return self.settings.can_score_color
         else:
-            return (255, 0, 0)  # red
+            return self.settings.can_not_score_color
+
+    def check_yahtzee_button_color(self):
+        """Checks color for yahtzee button"""
+
+        if self.scores.yahtzee is None:
+            return self.settings.can_score_color
+        elif self.scores.yahtzee == 0:
+            return self.settings.can_not_score_color
+        elif self.scores.yahtzee >= 50:
+            return self.settings.can_not_score_color
+        elif self.scores.scored_add_yahtzee_in_turn:
+            return self.settings.can_not_score_color
+        elif not self.scores.scored_add_yahtzee_in_turn:
+            return self.settings.can_score_color
 
     def check_text_colour(self, score, target):
         """Checking colour of text for numbers score"""
 
         if score is None:
-            return (0, 0, 0)  # black
+            return self.settings.score_number_no_score_text_color
         elif score > 3 * target:
-            return (0, 255, 0)  # green
+            return self.settings.score_number_under_text_color
         elif score < 3 * target:
-            return (255, 255, 0)  # yellow
-        else:
-            return (0, 0, 0)  # black
+            return self.settings.score_number_under_text_color
+        elif score == 3 * target:
+            return self.settings.score_number_equal_text_color
 
     def get_button_colour(self, score_type):
         """Returns red or green for button type"""
 
         # A list of [button_colour, button_text_colour]
-        button_colour = (255, 0, 0)
-        text_colour = (0, 0, 0)
+        button_colour = self.settings.can_not_score_color
+        text_colour = self.settings.can_not_score_text_color
 
         if score_type == 'ScoreName':
-            button_colour = (0, 0, 255)
+            button_colour = self.settings.score_name_color
         elif score_type == 'Score1':
             button_colour = self.check_button_colour(self.scores.ones)
             text_colour = self.check_text_colour(self.scores.ones, 1)
@@ -71,11 +86,11 @@ class Player:
             button_colour = self.check_button_colour(self.scores.sixes)
             text_colour = self.check_text_colour(self.scores.sixes, 6)
         elif score_type == 'ScoreNumbers':
-            button_colour = (255, 255, 255)
+            button_colour = self.settings.no_score_color
         elif score_type == 'ScoreBonus':
-            button_colour = (255, 255, 255)
+            button_colour = self.settings.no_score_color
         elif score_type == 'ScoreTop':
-            button_colour = (255, 255, 255)
+            button_colour = self.settings.no_score_color
         elif score_type == 'Score3K':
             button_colour = self.check_button_colour(self.scores.three_of_a_kind)
         elif score_type == 'Score4K':
@@ -87,22 +102,13 @@ class Player:
         elif score_type == 'ScoreLS':
             button_colour = self.check_button_colour(self.scores.long_straight)
         elif score_type == 'ScoreY':
-            if self.scores.yahtzee is None:
-                button_colour = (255, 255, 255)
-            elif self.scores.yahtzee == 0:
-                button_colour = (255, 0, 0)
-            elif self.scores.yahtzee == 50:
-                button_colour = (255, 0, 0)
-            elif self.scores.scored_add_yahtzee_in_turn:
-                button_colour = (255, 0, 0)
-            elif not self.scores.scored_add_yahtzee_in_turn:
-                button_colour = (0, 255, 0)
-        elif score_type == 'ScoreC' and self.scores.chance is None:
-            button_colour = (255, 255, 255)
+            button_colour = self.check_yahtzee_button_color()
+        elif score_type == 'ScoreC':
+            button_colour = self.check_button_colour(self.scores.chance)
         elif score_type == 'ScoreBottom':
-            button_colour = (255, 255, 255)
+            button_colour = self.settings.no_score_color
         elif score_type == 'ScoreTotal':
-            button_colour = (255, 255, 255)
+            button_colour = self.settings.no_score_color
 
         ret = [button_colour, text_colour]
         return ret
